@@ -3,18 +3,11 @@ artifactory:
   replicaCount: 3
   joinKey: EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
   masterKey: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+  unifiedSecretInstallation: false
+  openMetrics:
+    enabled: true
   persistence:
     enabled: false
-  replicator:
-    name: replicator
-    enabled: true
-    ingress:
-      name:
-      hosts: []
-      className: "testclass1"
-    trackerIngress:
-      enabled: true
-      className: "testclass2"
   resources:
     requests:
       memory: "4Gi"
@@ -25,6 +18,9 @@ artifactory:
   javaOpts:
     xms: "4g"
     xmx: "4g"
+  statefulset:
+    annotations:
+      artifactory: test
 
 postgresql:
   postgresqlPassword: password
@@ -45,6 +41,9 @@ ingress:
   hosts:
     - demonow.xyz
 nginx:
+  enabled: false
+
+jfconnect:
   enabled: false
 
 autoscaling:

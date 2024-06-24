@@ -4,6 +4,6 @@ dependencies:
   version: 10.3.18
 - name: rabbitmq
   repository: https://charts.jfrog.io/
-  version: 8.11.4
-digest: sha256:0dc101e31022e572f7b76ffbb3da939e8f927772b71a7d08796ba5b99e04602f
-generated: "2022-03-08T09:10:06.122387+05:30"
+  version: 11.9.3
+digest: sha256:07d819a08ebaae2057071eb70bad38ad8209bd611c73d906e3313cd5c20806d1
+generated: "2023-02-20T19:44:20.844286+05:30"

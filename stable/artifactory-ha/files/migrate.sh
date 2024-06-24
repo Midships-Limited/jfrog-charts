@@ -169,7 +169,7 @@ PROMPT_CLUSTER_MASTER_KEY="Master Key"
 KEY_CLUSTER_MASTER_KEY="$SYS_KEY_SHARED_SECURITY_MASTERKEY"
 IS_SENSITIVE_CLUSTER_MASTER_KEY="$FLAG_Y"
 
-MESSAGE_JOIN_KEY="The Join key is the secret key used to establish trust between services in the JFrog Platform.\n(You can copy the Join Key from Admin > Security > Settings)"
+MESSAGE_JOIN_KEY="The Join key is the secret key used to establish trust between services in the JFrog Platform.\n(You can copy the Join Key from Admin > User Management > Settings)"
 PROMPT_JOIN_KEY="Join Key"
 KEY_JOIN_KEY="$SYS_KEY_SHARED_SECURITY_JOINKEY"
 IS_SENSITIVE_JOIN_KEY="$FLAG_Y"
@@ -186,7 +186,7 @@ PROMPT_RABBITMQ_ACTIVE_NODE_IP="${RABBITMQ_LABEL} active node ip"
 KEY_RABBITMQ_ACTIVE_NODE_IP="$SYS_KEY_RABBITMQ_ACTIVE_NODE_IP"
 
 MESSAGE_JFROGURL(){
-    echo -e "The JFrog URL allows ${PRODUCT_NAME} to connect to a JFrog Platform Instance.\n(You can copy the JFrog URL from Admin > Security > Settings)"
+    echo -e "The JFrog URL allows ${PRODUCT_NAME} to connect to a JFrog Platform Instance.\n(You can copy the JFrog URL from Administration > User Management > Settings > Connection details)"
 }
 PROMPT_JFROGURL="JFrog URL"
 KEY_JFROGURL="$SYS_KEY_SHARED_JFROGURL"
@@ -896,7 +896,9 @@ setupScriptLogsRedirection() {
 
 # Returns Y if this method is run inside a container
 isRunningInsideAContainer() {
-    if [ -f "/.dockerenv" ]; then
+    local check1=$(grep -sq 'docker\|kubepods' /proc/1/cgroup; echo $?)
+    local check2=$(grep -sq 'containers' /proc/self/mountinfo; echo $?)
+    if [[ $check1 == 0 || $check2 == 0 || -f "/.dockerenv" ]]; then
         echo -n "$FLAG_Y"
     else
         echo -n "$FLAG_N"
@@ -2914,9 +2916,6 @@ yamlMigrate () {
     if [[ ! -z "${value}" ]]; then
         value=$(updateConnectionString "${yamlPath}" "${value}")
     fi
-    if [[ "${PRODUCT}" == "artifactory" ]]; then
-        replicatorProfiling
-    fi
     if [[ -z "${value}" ]]; then
         logger "No value for [${key}] in [${sourceFile}]"
     else
@@ -4216,24 +4215,11 @@ commentNodeId () {
 artifactoryInfoMessage () {
 
     if [[ "${INSTALLER}" == "${COMPOSE_TYPE}" || "${INSTALLER}" == "${HELM_TYPE}" ]]; then
-        addText "# yamlFile was generated from db.properties,replicator.yaml and ha-node.properties config files." "${SYSTEM_YAML_PATH}"
+        addText "# yamlFile was generated from db.properties and ha-node.properties config files." "${SYSTEM_YAML_PATH}"
     else
-        addText "# yamlFile was generated from default file,replicator.yaml,db.properties and ha-node.properties config files." "${SYSTEM_YAML_PATH}"
+        addText "# yamlFile was generated from default file,db.properties and ha-node.properties config files." "${SYSTEM_YAML_PATH}"
     fi
 
-}
-
-replicatorProfiling () {
-
-    if [[ "${key}" == "profilingDisabled" ]]; then
-        if [[ ! -z "${value}" ]]; then
-            if [[ "${value}" == "false" ]]; then
-                value="true"
-            else
-                value="false"
-            fi
-        fi
-    fi
 }
 
 setHaEnabled_hook () {
@@ -4275,27 +4261,9 @@ _createBackupOfLogBackDir () {
     removeFileOperation "${backupDir}/logbackXmlFiles/artifactory" "${artiLogbackFile}"
 }
 
-
-_createBackupOfReplicatorRtYaml () {
-    local backupDir="$1"
-    local replicatorRtYamlFile="${NEW_DATA_DIR}/etc/replicator/replicator.artifactory.yaml"
-    local effectiveUser=
-    local effectiveGroup=
-    if [[ "${INSTALLER}" == "${COMPOSE_TYPE}" || "${INSTALLER}" == "${HELM_TYPE}" ]]; then
-        effectiveUser="${JF_USER}"
-        effectiveGroup="${JF_USER}"
-    elif [[ "${INSTALLER}" == "${DEB_TYPE}" || "${INSTALLER}" == "${RPM_TYPE}" ]]; then
-        effectiveUser="${USER_TO_CHECK}" 
-        effectiveGroup="${GROUP_TO_CHECK}"
-    fi
-    removeSoftLinkAndCreateDir "${backupDir}/replicatorYamlFile" "${effectiveUser}" "${effectiveGroup}" "yes"
-    removeFileOperation "${backupDir}/replicatorYamlFile" "${replicatorRtYamlFile}"
-}
-
 backupFiles_hook () {
     local backupDirectory="$1" 
     _createBackupOfLogBackDir "${backupDirectory}"
-    _createBackupOfReplicatorRtYaml "${backupDirectory}"
 }
 
 migrateArtifactory () {

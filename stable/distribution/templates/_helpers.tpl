@@ -204,6 +204,9 @@ Return the proper distribution chart image names
     {{- if and $dot.Values.global.versions.router (eq $indexReference "router") }}
     {{- $tag = $dot.Values.global.versions.router | toString -}}
     {{- end -}}
+    {{- if and $dot.Values.global.versions.initContainers (eq $indexReference "initContainers") }}
+    {{- $tag = $dot.Values.global.versions.initContainers | toString -}}
+    {{- end -}}
     {{- if and $dot.Values.global.versions.distribution (eq $indexReference "distribution") }}
     {{- $tag = $dot.Values.global.versions.distribution | toString -}}
     {{- end -}}
@@ -223,52 +226,8 @@ Custom certificate copy command
 {{- define "distribution.copyCustomCerts" -}}
 echo "Copy custom certificates to {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted";
 mkdir -p {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted;
-find /tmp/certs -type f -not -name "*.key" -exec cp -v {} {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted \;;
-find {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted/ -type f -name "tls.crt" -exec mv -v {} {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted/ca.crt \;;
-{{- end -}}
-
-{{/*
-distribution liveness probe
-*/}}
-{{- define "distribution.livenessProbe" -}}
-{{- if .Values.newProbes -}}
-{{- printf "%s" "/api/v1/system/liveness" -}}
-{{- else -}}
-{{- printf "%s" "/api/v1/system/ping" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-distribution readiness probe
-*/}}
-{{- define "distribution.readinessProbe" -}}
-{{- if .Values.newProbes -}}
-{{- printf "%s" "/api/v1/system/readiness" -}}
-{{- else -}}
-{{- printf "%s" "/api/v1/system/ping" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-router liveness probe
-*/}}
-{{- define "distribution.router.livenessProbe" -}}
-{{- if .Values.newProbes -}}
-{{- printf "%s" "/router/api/v1/system/liveness" -}}
-{{- else -}}
-{{- printf "%s" "/router/api/v1/system/health" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-router readiness probe
-*/}}
-{{- define "distribution.router.readinessProbe" -}}
-{{- if .Values.newProbes -}}
-{{- printf "%s" "/router/api/v1/system/readiness" -}}
-{{- else -}}
-{{- printf "%s" "/router/api/v1/system/health" -}}
-{{- end -}}
+for file in $(ls -1 /tmp/certs/* | grep -v .key | grep -v ":" | grep -v grep); do if [ -f "${file}" ]; then cp -v ${file} {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted; fi done;
+if [ -f {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted/tls.crt ]; then mv -v {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted/tls.crt {{ .Values.distribution.persistence.mountPath }}/etc/security/keys/trusted/ca.crt; fi;
 {{- end -}}
 
 {{/*
@@ -279,3 +238,48 @@ Resolve distribution requiredServiceTypes value
 {{- $requiredTypes -}}
 {{- end -}}
 
+{{/*
+Resolve Distribution pod node selector value
+*/}}
+{{- define "distribution.nodeSelector" -}}
+nodeSelector:
+{{- if .Values.global.nodeSelector }}
+{{ toYaml .Values.global.nodeSelector | indent 2 }}
+{{- else if .Values.distribution.nodeSelector }}
+{{ toYaml .Values.distribution.nodeSelector | indent 2 }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve unifiedCustomSecretVolumeName value
+*/}}
+{{- define "distribution.unifiedCustomSecretVolumeName" -}}
+{{- printf "%s-%s" (include "distribution.name" .) ("unified-secret-volume") | trunc 63 -}}
+{{- end -}}
+
+{{/*
+Check the Duplication of volume names for secrets. If unifiedSecretInstallation is enabled then the method is checking for volume names,
+if the volume exists in customVolume then an extra volume with the same name will not be getting added in unifiedSecretInstallation case.
+*/}}
+{{- define "distribution.checkDuplicateUnifiedCustomVolume" -}}
+{{- if or .Values.global.customVolumes .Values.distribution.customVolumes -}}
+{{- $val := (tpl (include "distribution.customVolumes" .) .) | toJson -}}
+{{- contains (include "distribution.unifiedCustomSecretVolumeName" .) $val | toString -}}
+{{- else -}}
+{{- printf "%s" "false" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Calculate the systemYaml from structured and unstructured text input
+*/}}
+{{- define "distribution.finalSystemYaml" -}}
+{{ tpl (mergeOverwrite (include "distribution.systemYaml" . | fromYaml) .Values.distribution.extraSystemYaml | toYaml) . }}
+{{- end -}}
+
+{{/*
+Calculate the systemYaml from the unstructured text input
+*/}}
+{{- define "distribution.systemYaml" -}}
+{{ include (print $.Template.BasePath "/_system-yaml-render.tpl") . }}
+{{- end -}}

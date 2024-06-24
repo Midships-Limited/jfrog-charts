@@ -5,6 +5,9 @@ unifiedUpgradeAllowed: true
 databaseUpgradeReady: true
 insightServer:
   jfrogUrl: http://artifactory.rt:8082
+  unifiedSecretInstallation: false
+  openMetrics:
+    enabled: true
   extraEnvironmentVariables:
   - name: JF_INSIGHT_SERVER_EXTRAJAVAOPTS
     value: '-Xms2g -Xmx3g -server -XX:+UseG1GC -Dfile.encoding=UTF8'
@@ -20,11 +23,22 @@ insightServer:
     limits:
       memory: "2Gi"
       cpu: "1"
+  # Add lifecycle hooks for insightServer container
+  lifecycle:
+    postStart:
+      exec:
+        command: ["/bin/sh", "-c", "echo Hello from the insightServer postStart handler >> /tmp/message"]
+    preStop:
+      exec:
+        command: ["/bin/sh", "-c", "echo Hello from the insightServer postStart handler >> /tmp/message"]
   javaOpts:
     xms: "512m"
     xmx: "2g"
   priorityClass:
     create: true
+  statefulset:
+    annotations:
+      insight: test
 
 insightScheduler:
   extraEnvironmentVariables:
@@ -37,6 +51,14 @@ insightScheduler:
     limits:
       memory: "2Gi"
       cpu: "1"
+  # Add lifecycle hooks for insightScheduler container
+  lifecycle:
+    postStart:
+      exec:
+        command: ["/bin/sh", "-c", "echo Hello from the insightScheduler postStart handler >> /tmp/message"]
+    preStop:
+      exec:
+        command: ["/bin/sh", "-c", "echo Hello from the insightScheduler postStart handler >> /tmp/message"]
   javaOpts:
     xms: "512m"
     xmx: "2g"
@@ -49,6 +71,14 @@ router:
     limits:
       memory: "1Gi"
       cpu: "1"
+  # Add lifecycle hooks for router container
+  lifecycle:
+    postStart:
+      exec:
+        command: ["/bin/sh", "-c", "echo Hello from the router postStart handler >> /tmp/message"]
+    preStop:
+      exec:
+        command: ["/bin/sh", "-c", "echo Hello from the router postStart handler >> /tmp/message"]
 
 postgresql:
   image:

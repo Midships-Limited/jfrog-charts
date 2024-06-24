@@ -1,7 +1,41 @@
 # JFrog Insights Chart Changelog
 All changes to this chart will be documented in this file.
 
-## [101.10.2] - Apr 14, 2022
+## [101.16.12] - Oct 17, 2023
+* Fixed - StatefulSet pod annotations changed from range to toYaml [GH-1828](https://github.com/jfrog/charts/issues/1828)
+
+## [101.15.0] - Sep 18, 2023
+* Updated postgresql multi-arch tag version to `13.10.0-debian-11-r14`
+
+## [101.14.0] - Mar 02, 2023
+* Added topologySpreadConstraints to insight pods
+* Updated postgresql tag version to `13.9.0-debian-11-r11`
+* Updated jfrogUrl text path to copy
+* Updated initContainerImage and logger image to `ubi9/ubi-minimal:9.1.0.1793`
+
+## [101.13.0] - Oct 27, 2022
+* Removed `newProbes.enabled`, default to new probes
+* Updated initContainerImage to `ubi8/ubi-minimal:8.6-941`
+* Added support for annotations for insight statefulset [GH-1665](https://github.com/jfrog/charts/pull/1665)
+* Update elasticsearch version to `7.17.6` and updated initContainerImage of elasticsearch to releases-docker.jfrog.io/jfrog/elasticsearch-sg:7.17.6
+* Updated router version to `7.51.0`
+
+## [101.12.0] - Aug 25, 2022
+* Use an alternate command for `find` to copy custom certificates
+* Updated router version to `7.45.0`
+* Added `.Values.insightServer.openMetrics.enabled` flag to enable metrics (defaults to `false`)
+* Added flag `insightServer.schedulerName` to set for the pods the value of schedulerName field [GH-1606](https://github.com/jfrog/charts/issues/1606)
+* Added support for lifecycle hooks for all containers
+* Updated initContainerImage and logger Image to `ubi8/ubi-minimal:8.6-902`
+
+## [101.11.0] - Aug 25, 2022
+* Added new flag `unifiedSecretInstallation` to enables single unified secret holding all the insight secrets
+* Updated router version to `7.38.0`
+* Fixed duplicate entry of `initialDelaySeconds` [GH-1622](https://github.com/jfrog/charts/issues/1622)
+* Update elasticsearch version to `7.17.1`
+* Added support to truncate (> 63 chars) for unifiedCustomSecretVolumeName
+
+## [101.9.0] - Apr 14, 2022
 * Updated router version to `7.36.1`
 * Added support for custom global probes timeout
 * Reduce startupProbe `initialDelaySeconds`

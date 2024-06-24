@@ -245,52 +245,8 @@ Custom certificate copy command
 {{- define "insight-server.copyCustomCerts" -}}
 echo "Copy custom certificates to {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted";
 mkdir -p {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted;
-find /tmp/certs -type f -not -name "*.key" -exec cp -v {} {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted \;;
-find {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted/ -type f -name "tls.crt" -exec mv -v {} {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted/ca.crt \;;
-{{- end -}}
-
-{{/*
-insight liveness probe
-*/}}
-{{- define "insight.livenessProbe" -}}
-{{- if .Values.newProbes -}}
-{{- printf "%s" "/api/v1/system/liveness" -}}
-{{- else -}}
-{{- printf "%s" "/api/v1/system/ping" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-insight readiness probe
-*/}}
-{{- define "insight.readinessProbe" -}}
-{{- if .Values.newProbes -}}
-{{- printf "%s" "/api/v1/system/readiness" -}}
-{{- else -}}
-{{- printf "%s" "/api/v1/system/ping" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-router liveness probe
-*/}}
-{{- define "insight.router.livenessProbe" -}}
-{{- if .Values.newProbes -}}
-{{- printf "%s" "/router/api/v1/system/liveness" -}}
-{{- else -}}
-{{- printf "%s" "/router/api/v1/system/health" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-router readiness probe
-*/}}
-{{- define "insight.router.readinessProbe" -}}
-{{- if .Values.newProbes -}}
-{{- printf "%s" "/router/api/v1/system/readiness" -}}
-{{- else -}}
-{{- printf "%s" "/router/api/v1/system/health" -}}
-{{- end -}}
+for file in $(ls -1 /tmp/certs/* | grep -v .key | grep -v ":" | grep -v grep); do if [ -f "${file}" ]; then cp -v ${file} {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted; fi done;
+if [ -f {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted/tls.crt ]; then mv -v {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted/tls.crt {{ .Values.insightServer.persistence.mountPath }}/etc/security/keys/trusted/ca.crt; fi;
 {{- end -}}
 
 {{/*
@@ -313,5 +269,24 @@ nodeSelector:
 {{ toYaml .Values.global.nodeSelector | indent 2 }}
 {{- else if .Values.insightServer.nodeSelector }}
 {{ toYaml .Values.insightServer.nodeSelector | indent 2 }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve unifiedCustomSecretVolumeName value
+*/}}
+{{- define "insight.unifiedCustomSecretVolumeName" -}}
+{{- printf "%s-%s" (include "insight.name" .) ("unified-secret-volume") | trunc 63 -}}
+{{- end -}}
+
+{{/*
+Check the Duplication of volume names for secrets. If unifiedSecretInstallation is enabled then the method is checking for volume names,
+if the volume exists in customVolume then an extra volume with the same name will not be getting added in unifiedSecretInstallation case.*/}}
+{{- define "insight.checkDuplicateUnifiedCustomVolume" -}}
+{{- if or .Values.global.customVolumes .Values.common.customVolumes -}}
+{{- $val := (tpl (include "insight-server.customVolumes" .) .) | toJson -}}
+{{- contains (include "insight.unifiedCustomSecretVolumeName" .) $val | toString -}}
+{{- else -}}
+{{- printf "%s" "false" -}}
 {{- end -}}
 {{- end -}}

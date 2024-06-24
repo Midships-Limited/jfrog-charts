@@ -10,7 +10,7 @@ artifactory:
     persistence:
       enabled: false
 xray:
-  replicaCount: 2
+  replicaCount: 1
   common:
     persistence:
       enabled: false

@@ -1,7 +1,153 @@
 # JFrog Pipelines Chart Changelog
 All changes to this chart to be documented in this file.
 
-## [101.23.6] - Apr 20, 2022
+## [101.59.7] - Feb 21, 2024
+* Updated postgresql tag version to `15.2.0-debian-11-r23`
+    * If this is a new deployment or you already use an external database (`postgresql.enabled=false`), these changes **do not affect you**!
+    * If this is an upgrade and you are using the default PostgreSQL (`postgresql.enabled=true`), you need to pass previous 9.x/10.x/12.x's postgresql.image.tag, previous postgresql.persistence.size and databaseUpgradeReady=true
+* Added a check for postgresql version during upgrades
+* Added pod level and container security context
+
+## [101.56.0] - Jan 31, 2024
+* Fixes in external secret support on unified secret installation
+
+## [101.55.0] - Dec 28, 2023
+* Handled #redis postfix is ommited from redis service name if it contains redis 
+
+## [101.54.0] - Dec 21, 2023
+* Removed hardcoding of redis resources in default values
+
+## [101.53.0] - Nov 14, 2023
+* Updated rabbitmq version to 3.12.10-debian-11-r1
+* Updated redis version to 7.2.0-debian-11-r2
+
+## [101.51.0] - Nov 14, 2023
+* Update minimum supported kubernetes version to 1.19
+* Updated postgresql tag version to `13.13.0-debian-11-r4`
+* Updated hashicorp tag version to `1.15`
+* Changed default replicacount to 1 for redis
+* Updated sentinel port and master group name
+
+## [101.50.0] - Oct 20, 2023
+* Added sentinel redis
+* Upgrade redis, redis-sentinel and redis-exporter to latest versions
+* Upgrade rabbitmq container and chart version to 3.11.10-debian-11-r5 and 11.9.3
+* Use multiarch supported image for init container
+
+## [101.49.0] - Oct 16, 2023
+* Defined router required service types for pods
+
+## [101.46.2] - Oct 12, 2023
+* Added sidecar container for stepservice logs
+
+## [101.46.0] - Aug 7, 2023
+* Remove nexec microservice
+
+## [101.45.0] - Aug 7, 2023
+* Upadate chart version of vault to 0.25.0 to work with 1.25 of kubernetes
+
+
+## [101.44.0] - Jul 27, 2023
+* Added option to stream logs in json
+* Add support to work without vault on modifying corresponding flags
+* Remove steptrigger from pipelines
+* Remove logup from pipelines
+* Add ability to pass filebeat metric configuration
+* Updated nodePollerInterval from 15 seconds to 5 seconds
+* Fixed #adding colon in image registry breaks deployment with meta label error
+
+## [101.42.0] - Jun 16, 2023
+* Add observability container to non api pods
+* Add terminationGracePeriodSeconds for all the pods
+* Add ability to work with redis.fullnameOverride
+
+## [101.41.0] - May 31, 2023
+* Opens grpc port for nodepoolservice apis.
+* Opens http health check port for nodepoolservice 
+* Add ability to use redis with password
+* Add support to pass db metric parameters in system.yaml
+* Change hpa api version to autoscaling/v2
+* Enable probes on router
+* Add readiness to api container
+* Fix port for router readiness probe
+* Adds toggle for enabling/disabling anti-affinity spec for k8s node
+
+## [101.40.0] - Apr 25, 2023
+* Added log-service
+* Added step-service
+* Enabled nodepoolservice by default
+* Fix migration script failures on ssl enforced database
+* Fix database SSL details not being passed to nodepoolservice as expected in split mode
+* Fix vault issue with enforced SSL on azure database
+
+## [101.36.0] - Feb 23, 2023
+* Added build badge feature for pipelines
+* Added configuration to use access instead of vault to store secrets
+* Retained installer metrics only for db migrations
+* Handle jfrogUrlUI if nothing is set
+
+## [101.35.0] - Feb 06, 2023
+* Fixed indentation in nodepoolservice container definition
+
+## [101.34.0] - Jan 24, 2023
+* Added metrics to required init containers
+* Resources in pipelines observability is not renderring as expected
+
+## [101.33.0] - Jan 03, 2023
+* Rename nodepoolManager to nodepoolservice
+* Always run the nodepoolservice in both modes ( single pod and split mode)
+* Aligned ingress resource with cluster's networking API
+* Updated jfrogUrl text path to copy
+
+## [101.33.0] - Dec 30, 2022
+* Added readiness and liveness for the missing pods
+
+## [101.31.0] - Dec 16, 2022
+* Updated postgresql tag version to `13.9.0-debian-11-r11`
+* Improve pod startup time and reduce default resources on initcontainers
+
+## [101.29.0] - Dec 13, 2022
+* Group and split services to multiple pods to support autoscaling of only required services behind a feature flag
+* Made system config polling configurable from system.yaml
+* Handle long release names in wait for internal api logic in split mode
+* Ability to pass environment variables to specific service container
+* Add support for pod labels 
+
+## [101.28.0] - Oct 27, 2022
+* Added init containers wait-for-db and create-vault-table in vault-server pod
+* Added support for annotations for pipelines statefulset [GH-1665](https://github.com/jfrog/charts/pull/1665)
+* Added default pipelines image for ubuntu20 arm64 build nodes
+* Made baseUrlUI requirement optional in charts during install time
+
+## [101.27.0] - Sep 28, 2022
+* Added `observability` service in pipelines
+* Removed `newProbes.enabled`, default to new probes
+* Fixed bug for `unifiedSecretInstallation` support in observability
+* Fixed stringData secret keys value issue, moving data to stringData vault.sql and postgresql-connection keys
+
+## [101.26.0] - Aug 25, 2022
+* Added flag `pipelines.schedulerName` to set for the pods the value of schedulerName field [GH-1606](https://github.com/jfrog/charts/issues/1606)
+* Added config to reset log level
+* Change default go runtime images to 1.19
+* Added `NodePoolManager` microservice with default state as disabled
+
+## [101.25.0] - Aug 25, 2022
+* Additional fix for default path for api external url
+* Fixed custom CA init container behavior
+* Updated rabbitmq version to `3.9.21-debian-11-r0`
+* Added support to truncate (> 63 chars) for unifiedCustomSecretVolumeName
+
+## [101.24.2] - June 22, 2022
+* Only set k8sImagePullSecret key if one is configured in values.yaml
+* Use an alternate command for `find` to copy custom certificates
+
+## [101.24.1] - June 16, 2022
+* Fixes default path for api external url
+
+## [101.24.0] - Apr 27, 2022
+* Update rabbitmq chart and image to 8.31.6 and 3.9.15-debian-10-r5
+
+## [101.23.0] - Apr 25, 2022
 * Changed dependency charts repo to `charts.jfrog.io`
 * Added support for `global.nodeSelector` applies to pipelines pods
 * Set api external url to jfrogUrlUI when both api ingress is disabled and external api url is empty
@@ -10,6 +156,7 @@ All changes to this chart to be documented in this file.
 * Reduce startupProbe `initialDelaySeconds`
 * Align all liveness and readiness probes failureThreshold to `5` seconds
 * Removed newRelic support
+* Added new flag `unifiedSecretInstallation` to enables single unified secret holding all the pipelines secrets
 
 ## [101.22.0] - Apr 7, 2022
 * Refactored probes to replace httpGet probes with basic exec + curl
@@ -23,14 +170,14 @@ All changes to this chart to be documented in this file.
 * Added support for custom pod annotations using `pipelines.annotations`
 * Option to skip wait-for-db init container with '--set waitForDatabase=false'
 * Added support for PriorityClass
-* Set node 16 as default linux build image and as default node version 
+* Set node 16 as default linux build image and as default node version
 * Set jdk 17 as default java image
 * Set go 1.17 as default go image
 * Set dotnet 6 as default W19 image and as default dotnet version
 * Added `logup` service under `core.services` section
 * Bugfix - joinkey as a secret with joinKeySecretName
 * Added `frontend` nginx microservice for micro frontends
-* Fixed bug where all pipeline pods could run on the same node by adding missing labels for pipelines pods 
+* Fixed bug where all pipeline pods could run on the same node by adding missing labels for pipelines pods
 
 ## [101.21.0] - Dec 17, 2021
 * Add support custom labels using `pipelines.labels`
@@ -50,7 +197,7 @@ All changes to this chart to be documented in this file.
 * Removed `jfpipwww` as a router required service
 
 ## [101.19.0] - Nov 18, 2021
-* update system yaml with newer LTS build images 
+* update system yaml with newer LTS build images
 * **Breaking change**
 * Aligned probe structure (moved probes variables under config block)
 * Added support for new probes(set to false by default)

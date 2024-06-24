@@ -1,7 +1,107 @@
 # JFrog Distribution Chart Changelog
 All changes to this project chart be documented in this file.
 
-## [102.12.3] - Feb 08, 2022
+## [102.25.1] - May 16, 2024
+* Update postgresql tag version to `15.6.0-debian-11-r16`
+* Fixed an issue to generate unified secret to support distribution fullname [GH-1882](https://github.com/jfrog/charts/issues/1882)
+* Fixed an issue template render on loggers [GH-1883](https://github.com/jfrog/charts/issues/1883)
+
+## [102.24.0] - Mar 27, 2024
+* Added image section for `initContainers` instead of `initContainerImage`
+* Renamed `distribution.image.imagePullPolicy` to `distribution.image.pullPolicy`
+* Renamed `router.image.imagePullPolicy` to `router.image.pullPolicy`
+* Renamed `observability.image.imagePullPolicy` to `observability.image.pullPolicy`
+* Removed loggers.image section
+* Added support for `global.verisons.initContainers` to override `initContainers.image.tag`
+* Fixed an issue with extraSystemYaml merge
+
+## [102.23.0] - Feb 15, 2024
+* **IMPORTANT**
+* Added `unifiedSecretInstallation` flag which enables single unified secret holding all internal (chart) secrets to `true` by default
+* **Important change:**
+* Update postgresql tag version to `15.2.0-debian-11-r23`
+* If this is a new deployment or you already use an external database (`postgresql.enabled=false`), these changes **do not affect you**!
+* If this is an upgrade and you are using the default bundles PostgreSQL (`postgresql.enabled=true`), you need to pass previous 9.x/10.x/12.x/13.x's postgresql.image.tag, previous postgresql.persistence.size and databaseUpgradeReady=true
+* Added support for distribution on openshift by setting `podSecurityContext` and `containerSecurityContext` to false
+* **IMPORTANT**
+* Renamed `common.uid` to `podSecurityContext.runAsUser`
+* Renamed `common.gid` to `podSecurityContext.runAsGroup` and `podSecurityContext.fsGroup`
+* Renamed `common.fsGroupChangePolicy` to `podSecurityContext.fsGroupChangePolicy`
+* Added `redis.containerSecurityContext` to support openshift
+* Renamed `redis.uid` to `redis.containerSecurityContext.runAsUser`
+* Updated README.md to create a namespace using `--create-namespace` as part of helm install
+* Updated redis multi-arch tag version to 7.2.4-debian-11-r5
+* Refactored systemYaml configuration (moved to files/system.yaml instead of key in values.yaml).
+* Added ability to provide `extraSystemYaml` configuration in values.yaml which will merge with the existing system yaml when `systemYamlOverride` is not given.
+* Added IPV4/IPV6 Dualstack flag support for Distribution chart
+
+## [102.22.0] - Dec 22, 2023
+* Added recommended sizing configurations under sizing directory, please refer [here](README.md/#apply-sizing-configurations-to-the-chart)
+
+## [102.21.0] - Nov 27, 2023
+* Fixed - StatefulSet pod annotations changed from range to toYaml [GH-1828](https://github.com/jfrog/charts/issues/1828)
+* Removed default hardcoded javaOpts `-Xms2g -Xmx4g` from distribution.sh file
+* **IMPORTANT**
+* Added min kubeVersion ">= 1.19.0-0" in chart.yaml
+
+## [102.20.1] - Sep 18, 2023
+* Reverted - Enabled `unifiedSecretInstallation` by default [GH-1819](https://github.com/jfrog/charts/issues/1819)
+* Added NewRelic APM agent integration
+
+## [102.20.0] - Aug 29, 2023
+* Updated redis version tag to `7.2.0-debian-11-r2`
+* Enabled `unifiedSecretInstallation` by default
+
+## [102.19.1] - Aug 04, 2023
+* Changed selectors in ServiceMonitor object to empty values
+
+## [102.19.0] - Jun 12, 2023
+* Updated postgresql multi-arch tag version to `13.10.0-debian-11-r14`
+* Updated redis multi-arch tag version to `7.0.11-debian-11-r19`
+
+## [102.18.0] - Mar 02, 2023
+* Updated initContainerImage and logger image to `ubi9/ubi-minimal:9.1.0.1793`
+
+## [102.17.0] - Jan 30, 2023
+* Updated jfrogUrl text path to copy
+* Updated initContainerImage and logger image to `ubi9/ubi-minimal:9.1.0.1760`
+
+## [102.16.0] - Jan 16, 2023
+* Removed `newProbes.enabled`, default to new probes
+* Added support for annotations for distribution statefulset [GH-1665](https://github.com/jfrog/charts/pull/1665)
+* Added topologySpreadConstraints to distribution pods
+* Updated redis version tag to `7.0.6-debian-11-r0`
+* Updated postgresql tag version to `13.9.0-debian-11-r11`
+* Updated initContainerImage and logger image to `ubi8/ubi-minimal:8.7.1049`
+
+## [102.15.0] - Aug 25, 2022
+* Updated router version to `7.45.0`
+* Added flag `distribution.schedulerName` to set for the pods the value of schedulerName field [GH-1606](https://github.com/jfrog/charts/issues/1606)
+* Updated Observability version to `1.9.3`
+* Added support for lifecycle hooks for all containers
+* Updated logger Image to `ubi8/ubi-minimal:8.6-902`
+
+## [102.14.0] - Aug 25, 2022
+* Updated Observability version to `1.9.2`
+* Use an alternate command for `find` to copy custom certificates
+* Updated router version to `7.42.0`
+* Increased distribution redis container probes timeout [GH-1655](https://github.com/jfrog/charts/issues/1655)
+* Updated initContainerImage to `ubi8/ubi-minimal:8.6-854`
+* Added support to truncate (> 63 chars) for unifiedCustomSecretVolumeName
+
+## [102.13.0] - Apr 29, 2022
+* Fixed loggers sidecars to tail a configured log
+* Added silent option for curl probes
+* Changed dependency charts repo to `charts.jfrog.io`
+* Added support for `global.nodeSelector` applies to distribution pods
+* Added support for custom global probes timeout
+* Reduce startupProbe `initialDelaySeconds`
+* Align all liveness and readiness probes failureThreshold to `5` seconds
+* Added new flag `unifiedSecretInstallation` to enables single unified secret holding all the distribution secrets
+* Updated router version to `7.38.0`
+* Updated Observability version to `1.6.1`
+
+## [102.12.0] - Feb 14, 2022
 * Refactored `database-creds` secret to create only when database values are passed
 * Refactored probes to replace httpGet probes with basic exec + curl
 * Added new endpoints for probes `/api/v1/system/liveness` and `/api/v1/system/readiness`
@@ -16,8 +116,8 @@ All changes to this project chart be documented in this file.
 * Option to skip wait-for-db init container with '--set waitForDatabase=false'
 * Added support for PriorityClass
 * Added support to disable persistence for redis data
-* Updated Observability version to `1.2.3`
 * Updated router version to `7.32.1`
+* Updated Observability version to `1.3.0`
 
 ## [102.11.0] - Dec 17, 2021
 * Updated (`rbac.create` and `serviceAccount.create` to false by default) for least privileges

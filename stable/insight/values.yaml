@@ -10,8 +10,8 @@ global:
   ## Chart.AppVersion can be overidden using global.versions.insight or image tags
   ## Note: Order of preference is 1) global.versions 2) image tags 3) Chart.AppVersion
   versions: {}
-    # insight:
-    # router:
+  # insight:
+  # router:
   # jfrogUrl:
   # joinKey:
   # masterKey:
@@ -33,21 +33,17 @@ global:
   customCertificates:
     enabled: false
     # certificateSecretName:
-
   ## Applies to insight pods
   nodeSelector: {}
-
 ## Partially override insight.fullname template (eg: <releaseName>-<nameOverride>)
 # nameOverride:
 
 ## Fully override insight.fullname template
 # fullnameOverride:
-
-initContainerImage: releases-docker.jfrog.io/jfrog/ubi-minimal:8.5-204
-
+initContainerImage: releases-docker.jfrog.io/ubi9/ubi-minimal:9.2.750.1697534106
 # For supporting pulling from private registries
 imagePullSecrets:
-  # - myRegistryKeySecretName
+# - myRegistryKeySecretName
 
 ## Insight systemYaml override
 ## This is for advanced usecases where users wants to provide their own systemYaml for configuring Insight
@@ -56,11 +52,10 @@ imagePullSecrets:
 ## Alternatively, systemYaml can be overidden via customInitContainers using external sources like vaults, external repositories etc. Please refer customInitContainer section below for an example.
 ## Note: Order of preference is 1) customInitContainers 2) systemYamlOverride existingSecret 3) default systemYaml in values.yaml
 systemYamlOverride:
-## You can use a pre-existing secret by specifying existingSecret
+  ## You can use a pre-existing secret by specifying existingSecret
   existingSecret:
-## The dataKey should be the name of the secret data key created.
+  ## The dataKey should be the name of the secret data key created.
   dataKey:
-
 # Init containers
 initContainers:
   resources:
@@ -70,46 +65,53 @@ initContainers:
     limits:
       memory: "1Gi"
       cpu: "1"
-
 imagePullPolicy: IfNotPresent
-
 # For HA
 replicaCount: 1
-
 ## Database configurations
 ## Use the wait-for-db init container. Set to false to skip
 waitForDatabase: true
-
 shared:
   node:
     id:
-
 common:
   uid: 1040
   gid: 1040
   # fsGroupChangePolicy: "Always"
 
+  # Spread insight pods evenly across your nodes or some other topology
+  topologySpreadConstraints: []
+  # - maxSkew: 1
+  #   topologyKey: kubernetes.io/hostname
+  #   whenUnsatisfiable: DoNotSchedule
+  #   labelSelector:
+  #     matchLabels:
+  #       app: '{{ template "insight.name" . }}'
+  #       role: '{{ template "insight.name" . }}'
+  #       release: "{{ .Release.Name }}"
+
   ## Add custom volumes
-  customVolumes: |
+  # If .Values.insightServer.unifiedSecretInstallation is true then secret name should be '{{ template "insight.name" . }}-unified-secret'.
+  customVolumes: ""
   #  - name: custom-script
   #    configMap:
   #      name: custom-script
 
   ## Add custom volumesMounts
-  customVolumeMounts: |
+  customVolumeMounts: ""
   #  - name: custom-script
   #    mountPath: /scripts/script.sh
   #    subPath: script.sh
 
   # Add any list of configmaps
-  configMaps: |
+  configMaps: ""
   #  posthook-start.sh: |-
   #    echo "This is a post start script"
   #  posthook-end.sh: |-
   #    echo "This is a post end script"
 
   ## Add custom init containers execution before predefined init containers
-  customInitContainersBegin: |
+  customInitContainersBegin: ""
   #  - name: "custom-setup"
   #    image: "{{ .Values.initContainerImage }}"
   #    imagePullPolicy: "{{ .Values.imagePullPolicy }}"
@@ -128,7 +130,7 @@ common:
   #        name: data-volume
 
   ## Add custom init containers execution after predefined init containers
-  customInitContainers: |
+  customInitContainers: ""
   #  - name: "custom-systemyaml-setup"
   #    image: "{{ .Values.initContainerImage }}"
   #    imagePullPolicy: "{{ .Values.imagePullPolicy }}"
@@ -148,7 +150,7 @@ common:
 
   ## Add custom sidecar containers
   # - The provided example uses a custom volume (customVolumes)
-  customSidecarContainers: |
+  customSidecarContainers: ""
   #  - name: "sidecar-list-etc"
   #    image: "{{ .Values.initContainerImage }}"
   #    imagePullPolicy: "{{ .Values.imagePullPolicy }}"
@@ -177,6 +179,7 @@ common:
   #        cpu: "100m"
 
   # Add custom secrets - secret per file
+  # If .Values.insightServer.unifiedSecretInstallation is true then secret name should be '{{ template "insight.name" . }}-unified-secret'.
   customSecrets:
   #  - name: custom-secret
   #    key: custom-secret.yaml
@@ -188,7 +191,6 @@ common:
   #    key: custom-secret2.config
   #    data: |
   #      here the custom secret 2 config
-
 ## Role Based Access Control
 ## Ref: https://kubernetes.io/docs/admin/authorization/rbac/
 rbac:
@@ -196,37 +198,36 @@ rbac:
   role:
     ## Rules to create. It follows the role specification
     rules:
-    - apiGroups:
-      - ''
-      resources:
-      - services
-      - endpoints
-      - pods
-      verbs:
-      - get
-      - watch
-      - list
-
+      - apiGroups:
+          - ''
+        resources:
+          - services
+          - endpoints
+          - pods
+        verbs:
+          - get
+          - watch
+          - list
 networkpolicy: []
-  # Allows all ingress and egress
-  # - name: insight
-  #   podSelector:
-  #     matchLabels:
-  #       app: insight
-  #   egress:
-  #     - {}
-  #   ingress:
-  #     - {}
-  # Uncomment to allow only insight pods to communicate with postgresql (if postgresql.enabled is true)
-  # - name: postgres
-  #   podSelector:
-  #     matchLabels:
-  #       app: postgresql
-  #   ingress:
-  #   - from:
-  #     - podSelector:
-  #         matchLabels:
-  #           app: insight
+# Allows all ingress and egress
+# - name: insight
+#   podSelector:
+#     matchLabels:
+#       app: insight
+#   egress:
+#     - {}
+#   ingress:
+#     - {}
+# Uncomment to allow only insight pods to communicate with postgresql (if postgresql.enabled is true)
+# - name: postgres
+#   podSelector:
+#     matchLabels:
+#       app: postgresql
+#   ingress:
+#   - from:
+#     - podSelector:
+#         matchLabels:
+#           app: insight
 
 ## Service Account
 ## Ref: https://kubernetes.io/docs/admin/service-accounts-admin/
@@ -238,15 +239,13 @@ serviceAccount:
   name:
   ## Explicitly mounts the API credentials for the Service Account
   automountServiceAccountToken: false
-
 ## Details required for initialization/setup of database
 dbSetup:
   postgresql:
     image:
       repository: releases-docker.jfrog.io/postgres
-      tag: 13.4-alpine
+      tag: 13.9-alpine
       pullPolicy: IfNotPresent
-
 # PostgreSQL
 ## Configuration values for the PostgreSQL dependency sub-chart
 ## ref: https://github.com/kubernetes/charts/blob/master/stable/postgresql/README.md
@@ -255,7 +254,7 @@ postgresql:
   image:
     registry: releases-docker.jfrog.io
     repository: bitnami/postgresql
-    tag: 13.4.0-debian-10-r39
+    tag: 13.10.0-debian-11-r14
   postgresqlUsername: insight
   postgresqlPassword: ""
   postgresqlDatabase: insight
@@ -283,7 +282,6 @@ postgresql:
   #  limits:
   #    memory: "2Gi"
   #    cpu: "1"
-
 ### If NOT using the PostgreSQL in this chart (postgresql.enabled=false),
 ## specify custom database details here or leave empty
 database:
@@ -307,20 +305,18 @@ database:
   #  url:
   #    name: "insight-database-creds"
   #    key: "db-url"
-
-
 elasticsearch:
   enabled: true
   uid: 1000
   ## To overwrite existing ES search guard certificates, create a secret with the following files (localhost.key, localhost.pem, root-ca.pem, sgadmin.key, sgadmin.pem )
   ## certificatesSecretName:
   name: elasticsearch
-  initContainerImage: releases-docker.jfrog.io/alpine:3.14.2
+  initContainerImage: releases-docker.jfrog.io/jfrog/elasticsearch-sg:7.17.6
   configureDockerHost: true
   image:
     registry: releases-docker.jfrog.io
     repository: jfrog/elasticsearch-sg
-    tag: 7.16.3
+    tag: 7.17.6
     pullPolicy: IfNotPresent
   ## Enter elasticsearch connection details
   ## By default url is set to localhost:8082 (router)
@@ -334,7 +330,6 @@ elasticsearch:
     networkHost: "0.0.0.0"
     transportHost: "0.0.0.0"
     maxMapCount: 262144
-
   persistence:
     enabled: true
     ## A manually managed Persistent Volume and Claim
@@ -353,12 +348,10 @@ elasticsearch:
     ##   GKE, AWS & OpenStack)
     ##
     # storageClass: "-"
-
   ## ElasticSearch xms and xmx should be same!
   javaOpts:
     xms: "2g"
     xmx: "2g"
-
   resources: {}
   #  requests:
   #    memory: "2Gi"
@@ -378,7 +371,6 @@ elasticsearch:
       timeoutSeconds: 10
       failureThreshold: 3
       successThreshold: 1
-
   readinessProbe:
     enabled: true
     config: |
@@ -390,7 +382,6 @@ elasticsearch:
       timeoutSeconds: 10
       failureThreshold: 5
       successThreshold: 1
-
   startupProbe:
     enabled: true
     config: |
@@ -400,15 +391,12 @@ elasticsearch:
       initialDelaySeconds: 30
       failureThreshold: 30
       periodSeconds: 5
-
 podRestartTime:
-
 logger:
   image:
     registry: releases-docker.jfrog.io
-    repository: jfrog/ubi-minimal
-    tag: 8.5-204
-
+    repository: ubi9/ubi-minimal
+    tag: 9.2.750.1697534106
 insightServer:
   name: insight-server
   ## Note that by default we use appVersion to get image tag/version
@@ -416,7 +404,10 @@ insightServer:
     registry: releases-docker.jfrog.io
     repository: jfrog/insight-server
     # tag:
-
+  # unifiedSecretInstallation flag enables single unified secret holding all the insight-server secrets
+  unifiedSecretInstallation: false
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  schedulerName:
   # Create a priority class for the Insight pod or use an existing one
   # NOTE - Maximum allowed value of a user defined priority is 1000000000
   priorityClass:
@@ -426,7 +417,6 @@ insightServer:
     # name:
     ## Use an existing priority class
     # existingPriorityClass:
-
   appContext: insight
   appName: insight-server
   home: /opt/jfrog
@@ -438,12 +428,19 @@ insightServer:
         connectionWaitTimeoutSecs: 1800
   labels: {}
   annotations: {}
+  # Add lifecycle hooks for the insight pods
+  lifecycle: {}
+  # postStart:
+  #   exec:
+  #     command: ["/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"]
+  # preStop:
+  #   exec:
+  #     command: ["/bin/sh", "-c", "echo Hello from the preStart handler > /usr/share/message"]
 
   # env:
 
   # Set this to true if you want to override credentials in insight-server.properties on startup
   propertyOverride: true
-
   ## Add any of the loggers to a sidecar if you want to be able to see them with kubectl logs or a log collector in your k8s cluster
   loggers: []
   # - insight-server-request.log
@@ -453,12 +450,12 @@ insightServer:
 
   # Loggers containers resources
   loggersResources: {}
-    # requests:
-    #   memory: "64Mi"
-    #   cpu: "25m"
-    # limits:
-    #   memory: "128Mi"
-    #   cpu: "50m"
+  # requests:
+  #   memory: "64Mi"
+  #   cpu: "25m"
+  # limits:
+  #   memory: "128Mi"
+  #   cpu: "50m"
 
   ## Insight-server requires a unique master.key
   # This will be used to encript sensitive data to be stored in database
@@ -477,12 +474,10 @@ insightServer:
   consoleLog: false
   ## Artifactory URL . Mandatory
   jfrogUrl:
-
   ## certificates added to this secret will be copied to $JFROG_HOME/insight/var/etc/security/keys/trusted directory
   customCertificates:
     enabled: false
     # certificateSecretName:
-
   podRestartTime:
   repository: jfrog-insight-server
   package: insight-docker-installer
@@ -490,7 +485,22 @@ insightServer:
   osVersion: "NA"
   osType: "NA"
   osDist: "NA"
-
+  # To enable set `.Values.insightServer.openMetrics.enabled` to `true`
+  # Refer - https://www.jfrog.com/confluence/display/JFROG/Open+Metrics
+  openMetrics:
+    enabled: false
+    ## Settings for pushing metrics to Insight - enable filebeat to true
+    filebeat:
+      enabled: false
+      log:
+        enabled: false
+        ## Log level for filebeat. Possible values: debug, info, warning, or error.
+        level: "info"
+      ## Elasticsearch details for filebeat to connect
+      elasticsearch:
+        url: "Elasticsearch url where JFrog Insight is installed For example, http://<ip_address>:8082"
+        username: ""
+        password: ""
   systemYaml: |
     router:
       serviceRegistry:
@@ -501,10 +511,17 @@ insightServer:
         version: {{ .Values.elasticsearch.image.tag }}
     {{- end}}
     shared:
+    {{- if .Values.insightServer.openMetrics.enabled }}
+      metrics:
+        enabled: true
+      {{- if .Values.insightServer.openMetrics.filebeat.enabled }}
+        filebeat: {{ toYaml .Values.insightServer.openMetrics.filebeat | nindent 6 }}
+      {{- end }}
+    {{- end }}
       logging:
         consoleLog:
           enabled: {{ .Values.insightServer.consoleLog }}
-      jfrogUrl: "{{ tpl (required "\n\ninsight-server.jfrogUrl or global.jfrogUrl is required! This allows to connect to Artifactory.\nYou can copy the JFrog URL from Admin > Security > Settings" (include "insight-server.jfrogUrl" .)) . }}"
+      jfrogUrl: "{{ tpl (required "\n\ninsight-server.jfrogUrl or global.jfrogUrl is required! This allows to connect to Artifactory.\nYou can copy the JFrog URL from Administration > User Management > Settings > Connection details" (include "insight-server.jfrogUrl" .)) . }}"
       elasticsearch:
         username: {{ .Values.elasticsearch.username }}
         password: {{ .Values.elasticsearch.password }}
@@ -532,7 +549,6 @@ insightServer:
           connectionWaitTimeoutSecs: {{ .Values.insightServer.clients.elasticsearch.connectionWaitTimeoutSecs }}
           searchguard:
             connectionWaitTimeoutSecs: {{ .Values.insightServer.clients.elasticsearch.searchguard.connectionWaitTimeoutSecs }}
-
   persistence:
     enabled: true
     ## A manually managed Persistent Volume and Claim
@@ -551,7 +567,6 @@ insightServer:
     ##   GKE, AWS & OpenStack)
     ##
     # storageClass: "-"
-
   ## Extra environment variables that can be used to tune to your needs.
   ## Uncomment and set value as needed, For example : Control Java options
   # - name: JF_INSIGHT_SERVER_EXTRAJAVAOPTS
@@ -566,22 +581,20 @@ insightServer:
   #    memory: "3.5Gi"
   #    cpu: "1"
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
   ## Only used if "affinity" is empty
   podAntiAffinity:
     ## Valid values are "soft" or "hard"; any other value indicates no anti-affinity
     type: "soft"
     topologyKey: "kubernetes.io/hostname"
-
   service:
     type: ClusterIP
     annotations: {}
+  statefulset:
+    annotations: {}
   internalPort: 8087
   externalPort: 80
-
   livenessProbe:
     enabled: true
     config: |
@@ -589,13 +602,12 @@ insightServer:
         command:
           - sh
           - -c
-          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} http://localhost:{{ .Values.insightServer.internalPort }}{{ include "insight.livenessProbe" . }}
+          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} http://localhost:{{ .Values.insightServer.internalPort }}/api/v1/system/liveness
       initialDelaySeconds: {{ if semverCompare "<v1.20.0-0" .Capabilities.KubeVersion.Version }}90{{ else }}0{{ end }}
       periodSeconds: 10
       timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
       failureThreshold: 3
       successThreshold: 1
-
   startupProbe:
     enabled: true
     config: |
@@ -603,17 +615,15 @@ insightServer:
         command:
           - sh
           - -c
-          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} http://localhost:{{ .Values.insightServer.internalPort }}{{ include "insight.readinessProbe" . }}
+          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} http://localhost:{{ .Values.insightServer.internalPort }}/api/v1/system/readiness
       initialDelaySeconds: {{ if semverCompare "<v1.20.0-0" .Capabilities.KubeVersion.Version }}30{{ else }}0{{ end }}
       failureThreshold: 30
       periodSeconds: 5
       timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
-
-  ## Extra pre start command to run extra commands before container starts
-  # preStartCommand:
-  ## For example, to import trusted keystore ( Need to mount the certificates first )
-  # preStartCommand: "/java/jdk-11.0.13+8/bin/keytool -importcert -keystore /java/jdk-11.0.13+8/lib/security/cacerts -storepass changeit -file /tmp/trusted-certificates/root.crt -alias 'newcerts'"
-
+    ## Extra pre start command to run extra commands before container starts
+    # preStartCommand:
+    ## For example, to import trusted keystore ( Need to mount the certificates first )
+    # preStartCommand: "/java/jdk-17.0.3+7/bin/keytool -importcert -keystore /java/jdk-17.0.3+7/lib/security/cacerts -storepass changeit -file /tmp/trusted-certificates/root.crt -alias 'newcerts'"
 insightScheduler:
   name: insight-scheduler
   ## Note that by default we use appVersion to get image tag/version
@@ -624,7 +634,6 @@ insightScheduler:
   appContext: insight-scheduler
   home: /opt/jfrog
   internalPort: 8085
-
   ## Extra environment variables that can be used to tune to your needs.
   ## Uncomment and set value as needed, For example : Control Java options
   # extraEnvironmentVariables:
@@ -639,6 +648,15 @@ insightScheduler:
   #  limits:
   #    memory: "1.5Gi"
   #    cpu: "1"
+
+  # Add lifecycle hooks for the insightScheduler pod
+  lifecycle: {}
+  # postStart:
+  #   exec:
+  #     command: ["/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"]
+  # preStop:
+  #   exec:
+  #     command: ["/bin/sh", "-c", "echo Hello from the preStart handler > /usr/share/message"]
 
   # Persistence for the logs
   persistence:
@@ -659,7 +677,6 @@ insightScheduler:
     ##   GKE, AWS & OpenStack)
     ##
     # storageClass: "-"
-
   ## Add any of the loggers to a sidecar if you want to be able to see them with kubectl logs or a log collector in your k8s cluster
   loggers: []
   # - router-request.log
@@ -673,12 +690,12 @@ insightScheduler:
 
   # Loggers containers resources
   loggersResources: {}
-    # requests:
-    #   memory: "64Mi"
-    #   cpu: "25m"
-    # limits:
-    #   memory: "128Mi"
-    #   cpu: "50m"
+  # requests:
+  #   memory: "64Mi"
+  #   cpu: "25m"
+  # limits:
+  #   memory: "128Mi"
+  #   cpu: "50m"
 
   livenessProbe:
     enabled: true
@@ -687,13 +704,12 @@ insightScheduler:
         command:
           - sh
           - -c
-          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} http://localhost:{{ .Values.insightScheduler.internalPort }}{{ include "insight.livenessProbe" . }}
+          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} http://localhost:{{ .Values.insightScheduler.internalPort }}/api/v1/system/liveness
       initialDelaySeconds: {{ if semverCompare "<v1.20.0-0" .Capabilities.KubeVersion.Version }}90{{ else }}0{{ end }}
       periodSeconds: 10
       timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
       failureThreshold: 3
       successThreshold: 1
-
   startupProbe:
     enabled: true
     config: |
@@ -701,19 +717,17 @@ insightScheduler:
         command:
           - sh
           - -c
-          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} http://localhost:{{ .Values.insightScheduler.internalPort }}{{ include "insight.readinessProbe" . }}
+          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} http://localhost:{{ .Values.insightScheduler.internalPort }}/api/v1/system/readiness
       initialDelaySeconds: {{ if semverCompare "<v1.20.0-0" .Capabilities.KubeVersion.Version }}30{{ else }}0{{ end }}
-      initialDelaySeconds: 30
       failureThreshold: 30
       periodSeconds: 5
       timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
-
 router:
   name: router
   image:
     registry: releases-docker.jfrog.io
     repository: jfrog/router
-    tag: 7.36.1
+    tag: 7.87.0
     imagePullPolicy: IfNotPresent
   serviceRegistry:
     ## Service registry (Access) TLS verification skipped if enabled
@@ -729,6 +743,15 @@ router:
   #    memory: "1Gi"
   #    cpu: "1"
 
+  # Add lifecycle hooks for the router pod
+  lifecycle: {}
+  # postStart:
+  #   exec:
+  #     command: ["/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"]
+  # preStop:
+  #   exec:
+  #     command: ["/bin/sh", "-c", "echo Hello from the preStart handler > /usr/share/message"]
+
   livenessProbe:
     enabled: true
     config: |
@@ -736,13 +759,12 @@ router:
         command:
           - sh
           - -c
-          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} {{ include "insight.scheme" . }}://localhost:{{ .Values.router.internalPort }}{{ include "insight.router.livenessProbe" . }}
+          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} {{ include "insight.scheme" . }}://localhost:{{ .Values.router.internalPort }}/router/api/v1/system/liveness
       initialDelaySeconds: {{ if semverCompare "<v1.20.0-0" .Capabilities.KubeVersion.Version }}90{{ else }}0{{ end }}
       periodSeconds: 10
       timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
       failureThreshold: 3
       successThreshold: 1
-
   readinessProbe:
     enabled: true
     config: |
@@ -750,13 +772,12 @@ router:
         command:
           - sh
           - -c
-          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} {{ include "insight.scheme" . }}://localhost:{{ .Values.router.internalPort }}{{ include "insight.router.readinessProbe" . }}
+          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} {{ include "insight.scheme" . }}://localhost:{{ .Values.router.internalPort }}/router/api/v1/system/readiness
       initialDelaySeconds: {{ if semverCompare "<v1.20.0-0" .Capabilities.KubeVersion.Version }}60{{ else }}0{{ end }}
       periodSeconds: 10
       timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
       failureThreshold: 5
       successThreshold: 1
-
   startupProbe:
     enabled: true
     config: |
@@ -764,23 +785,19 @@ router:
         command:
           - sh
           - -c
-          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} {{ include "insight.scheme" . }}://localhost:{{ .Values.router.internalPort }}{{ include "insight.router.readinessProbe" . }}
+          - curl -s -k --fail --max-time {{ .Values.probes.timeoutSeconds }} {{ include "insight.scheme" . }}://localhost:{{ .Values.router.internalPort }}/router/api/v1/system/readiness
       initialDelaySeconds: 30
       failureThreshold: 30
       periodSeconds: 5
       timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
-
   persistence:
     accessMode: ReadWriteOnce
     mountPath: "/var/opt/jfrog/router"
     size: 5Gi
-
   # Add any of the loggers to a sidecar if you want to be able to see them with kubectl logs or a log collector in your k8s cluster
   loggers: []
-
   tolerations: []
   affinity: {}
-
 # Filebeat Sidecar container
 ## The provided filebeat configuration is for Insight logs. It assumes you have a logstash installed and configured properly.
 filebeat:
@@ -790,9 +807,7 @@ filebeat:
     repository: "docker.elastic.co/beats/filebeat"
     version: 7.16.2
   logstashUrl: "logstash:5044"
-
   terminationGracePeriod: 10
-
   livenessProbe:
     exec:
       command:
@@ -805,7 +820,6 @@ filebeat:
     initialDelaySeconds: 10
     periodSeconds: 10
     timeoutSeconds: 5
-
   readinessProbe:
     exec:
       command:
@@ -818,14 +832,13 @@ filebeat:
     initialDelaySeconds: 10
     periodSeconds: 10
     timeoutSeconds: 5
-
   resources: {}
-#    requests:
-#      memory: "100Mi"
-#      cpu: "100m"
-#    limits:
-#      memory: "100Mi"
-#      cpu: "100m"
+  #    requests:
+  #      memory: "100Mi"
+  #      cpu: "100m"
+  #    limits:
+  #      memory: "100Mi"
+  #      cpu: "100m"
 
   filebeatYml: |
     logging.level: info
@@ -846,11 +859,9 @@ filebeat:
     output:
       logstash:
          hosts: ["{{ .Values.filebeat.logstashUrl }}"]
-
 ## Allows to add additional kubernetes resources
 ## Use --- as a separator between multiple resources
-additionalResources: |
-
+additionalResources: ""
 # Adding entries to a Pod's /etc/hosts file
 # For an example, refer - https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases
 hostAliases: []
@@ -862,9 +873,6 @@ hostAliases: []
 #    hostnames:
 #      - "foo.remote"
 #      - "bar.remote"
-
-## To enable new probes
-newProbes: true
 
 ## Specify common probes parameters
 probes:

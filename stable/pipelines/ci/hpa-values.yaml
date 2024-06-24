@@ -5,7 +5,6 @@ pipelines:
   jfrogUrlUI: http://artifactory.rt:8082
 
   api:
-    externalUrl: http://pipelines.test.com
     resources:
       limits:
         cpu: "2"
@@ -40,24 +39,6 @@ pipelines:
         cpu: 25m
         memory: 40Mi
 
-  runTrigger:
-    resources:
-      limits:
-        cpu: 500m
-        memory: 500Mi
-      requests:
-        cpu: 5m
-        memory: 40Mi
-
-  stepTrigger:
-    resources:
-      limits:
-        cpu: 500m
-        memory: 500Mi
-      requests:
-        cpu: 5m
-        memory: 40Mi
-
   cron:
     resources:
       limits:
@@ -83,24 +64,6 @@ pipelines:
         memory: 500Mi
       requests:
         cpu: 25m
-        memory: 40Mi
-
-  marshaller:
-    resources:
-      limits:
-        cpu: 500m
-        memory: 500Mi
-      requests:
-        cpu: 5m
-        memory: 60Mi
-
-  logup:
-    resources:
-      limits:
-        cpu: 500m
-        memory: 500Mi
-      requests:
-        cpu: 5m
         memory: 40Mi
 
   extensionSync:

@@ -1,12 +1,161 @@
 # JFrog Xray Chart Changelog
 All changes to this chart will be documented in this file.
 
+## [103.96.1] - Apr 17, 2024
+* Added `rabbitmq.containerSecurityContext.allowPrivilegeEscalation` flag to ensure `RunAsUser` commands cannot bypass their existing sets of permissions. Set to `false` by default
+* Updated rabbitmq multi-arch tag version to to `3.12.13-debian-11-r0`
+
+## [103.95.0] - Apr 2, 2024
+* **IMPORTANT**
+* Refactored systemYaml configuration (moved to files/system.yaml instead of key in values.yaml)
+* Added ability to provide `extraSystemYaml` configuration in values.yaml which will merge with the existing system yaml when `systemYamlOverride` is not given. [GH-1842](https://github.com/jfrog/charts/pull/1842)
+* Update postgresql tag version to `15.6.0-debian-11-r16`
+
+## [103.94.0] - Mar 27, 2024
+* **IMPORTANT**
+* Added image section for `initContainers` instead of `initContainerImage`
+* Removed image section for `loggers`
+* Added support for `global.verisons.initContainers` to override `initContainers.image.tag`
+
+## [103.93.0] - Mar 5,2024
+* Updated rabbitmq multi-arch tag version to to `3.12.10-debian-11-r1`
+* Fixed - StatefulSet pod annotations changed from range to toYaml [GH-1828](https://github.com/jfrog/charts/issues/1828)
+* Updated README.md to create a namespace using `--create-namespace` as part of helm install
+* Added a headless service for IPA pod
+
+## [103.91.0] - Feb 21,2024
+* **IMPORTANT**
+* Added `unifiedSecretInstallation` flag which enables single unified secret holding all internal (chart) secrets to `true` by default
+* Renamed sizing yaml file names from `xray-sizing-<size>.yaml` to `xray-<size>.yaml`
+* **Important change:**
+* Update postgresql tag version to `15.2.0-debian-11-r23`
+* Renamed `common.xrayUserId` to `podSecurityContext.runAsUser`
+* Renamed `common.xrayGroupId` to `podSecurityContext.runAsGroup` and `podSecurityContext.fsGroup`
+* Renamed `common.fsGroupChangePolicy` to `podSecurityContext.fsGroupChangePolicy`
+
+## [103.89.0] - Jan 18,2023
+* Remove fallback section from keda.
+
+## [103.88.0] - Dec 20,2023
+* Added support for migrating rabbitmq to high-availability quorum queues setup
+
+## [103.87.0] - Dec 7,2023
+* Update minimum supported kubernetes version to 1.19
+* Added recommended t-shirt sizing configurations under sizing folder
+* Added support for rabbitmq high-availability quorum queues clean install setup
+* Fix the pre-upgrade-hook for rabbitmq migration to support installations on openshift platforms
+
+## [103.86.0] - Nov 14,2023
+* Fixed - containerSecurityContext on loggers
+
+## [103.83.0] - Sep 15,2023
+* Fixed - Support to configure privateRegistry for pre-upgrade-hook
+
+## [103.80.0] - Jul 16, 2023
+* Added `podSecurityContext.enabled` and `containerSecurityContext.enabled` to support openshift
+
+## [103.79.0] - Jul 3, 2023
+* Added TLS support for rabbitmq
+* Moved common.extraEnvs to statefulset from values.yaml
+* Added `extraEnvVars` for each container
+* Fixed rabbitmq feature flag conditions for pre-upgrade hook command execution
+
+## [103.77.0] - Jun 05, 2023
+* Set securePassword to false in a values yaml [GH-1763](https://github.com/jfrog/charts/pull/1763)
+* Upgraded to autoscaling/v2
+
+## [103.76.0] - May 24, 2023
+* Set Pod disruption budget to none by default if not set in `xray.minAvailable`
+
+## [103.75.0] - May 19, 2023
+* Fix lint issue when rabbitmq is disabled
+
+## [103.74.0] - May 2, 2023
+* Inject global image pull secret to the system.yaml for JAS
+* Add configuration for JAS images registry and repository in the system.yaml
+* Added securityContext for rabbitmq pre-upgrade hook pod
+
+## [103.72.0] - Apr 07, 2023
+* Adding vm memory memoryHighWatermark field and scheduler field for Rabbitmq Chart
+* Update pre-upgrade hook image of rabbitmq
+
+## [103.70.0] - Mar 21, 2023
+* Updated postgresql multi-arch tag version to `13.10.0-debian-11-r14`
+* Updated rabbitmq multi-arch tag version to `3.11.10-debian-11-r5`
+* Added pre-upgrade hook for rabbitmq upgrade from 3.8.x to 3.11.x
+
+## [103.69.0] - Mar 21, 2023
+* **IMPORTANT**
+* Added default rabbitmq user creation via `load_definition` secret to support upstream bitnami [11.x chart](https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq#to-1100)
+* Updated rabbitmq's  chart version  to `11.9.3` and image version to `3.11.9-debian-11-r1`
+* Updated initContainerImage and logger image to `ubi9/ubi-minimal:9.1.0.1793`
+* Added `rabbitmq.featureFlags` to support upgrade from 3.8.x to 3.11.x . More info [here](https://blog.rabbitmq.com/posts/2022/07/required-feature-flags-in-rabbitmq-3.11/)
+
+## [103.68.0] - Feb 16, 2023
+* Updated initContainerImage and logger image to `ubi9/ubi-minimal:9.1.0.1760`
+
+## [103.67.0] - Feb 16, 2023
+* Added topologySpreadConstraints to xray pods
+* Allow setting executionServiceAesKey in a secret [GH-1685](https://github.com/jfrog/charts/issues/1685)
+* Updated postgresql tag version to `13.9.0-debian-11-r11`
+* Adding support for PodDisruptionBudget
+* Updated jfrogUrl text path to copy
+* Added pods/log and events resources to xray serviceaccount
+* Added option to pass extra environment variables via `common.extraEnvVars` for xray containers
+
+## [103.63.0] - Jan 16, 2023
+* Updated initContainerImage and logger image to `ubi8/ubi-minimal:8.7.1049`
+
+## [103.60.0] - Oct 27, 2022
+* Updated router version to `7.51.0`
+
+## [103.59.0] - Sep 20, 2022
+* Removed `newProbes.enabled`, default to new probes
+* Updated Observability version to `1.11.0`
+* Updated initContainerImage to `ubi8/ubi-minimal:8.6-941`
+* Added support for annotations for xray statefulset [GH-1665](https://github.com/jfrog/charts/pull/1665)
+
+## [103.57.0] - Aug 25, 2022
+* Added support for lifecycle hooks for all containers
+
+## [103.56.0] - Aug 25, 2022
+* Updated initContainerImage and logger Image to `ubi8/ubi-minimal:8.6-854`
+* Added `.Values.xray.openMetrics.enabled`  flag to enable metrics (defaults to `false`) [GH-1649](https://github.com/jfrog/charts/pull/1649)
+* Added flag `xray.schedulerName` to set for the pods the value of schedulerName field [GH-1606](https://github.com/jfrog/charts/issues/1606)
+* Updated Observability version to `1.9.3`
+
+## [103.55.0] - Aug 25, 2022
+* Updated initContainerImage to ubi8/ubi-minimal:8.6-854
+* Updated rabbitmq version to `3.9.21-debian-11-r0`
+* Updated router version to `7.45.0`
+* Added support to truncate (> 63 chars) for unifiedCustomSecretVolumeName
+
+## [103.54.0] - July 14, 2022
+* Added new flag "unifiedSecretInstallation" to enables single unified secret holding all the secrets
+* Added `executionserviceAWS` key (optional) in values.yaml like joinkey and masterkey [GH-1600](https://github.com/jfrog/charts/pull/1600)
+* Updated Observability version to `1.9.2`
+* Updated router version to `7.42.0`
+
+## [103.53.0] - Jun 22, 2022
+* Use an alternate command for `find` to copy custom certificates
+
+## [103.52.0] - Jun 20, 2022
+* Updated Observability version to `1.9.0`
+
+## [103.51.0] - May 17, 2022
+* Updated Observability version to `1.7.0`
+
+## [103.49.0] - Apr 29, 2022
+* Updated Observability version to `1.6.1`
+* Updated router version to `7.38.0`
+* Update rabbitmq chart and image to 8.31.6 and 3.9.15-debian-10-r5
+
 ## [103.48.0] - Apr 19, 2022
 * Updated Observability version to `1.5.1`
 * Reduce startupProbe `initialDelaySeconds`
 * Align all liveness and readiness probes failureThreshold to `5` seconds
 
-## [103.49.0] - Apr 14, 2022
+## [103.47.0] - Apr 14, 2022
 * Added support for custom global probes timeout
 * Added env variable `XRAY_K8S_ENV` to xray server container
 
